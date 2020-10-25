@@ -61,7 +61,7 @@ fn get_string_between(prefix: &str, suffix: &str, seartch_str: &String) -> Optio
     Some(split)
 }
 
-fn is_page_of_language(compairLang: &String, lines: &Vec<String>) -> bool {
+fn is_page_of_language(compair_lang: &String, lines: &Vec<String>) -> bool {
     let lang_line_index = vector_utils::index_of_first_match(|x: &String| x.contains("=="), &lines);
     if lang_line_index > 0 {
         return match get_string_between(
@@ -69,7 +69,7 @@ fn is_page_of_language(compairLang: &String, lines: &Vec<String>) -> bool {
             "==",
             lines.get(lang_line_index).unwrap_or(&String::from(" ")),
         ) {
-            Some(s) => *compairLang == s,
+            Some(s) => *compair_lang == s,
             None => false,
         };
     }
@@ -88,10 +88,9 @@ fn get_page_word(lines: &Vec<String>) -> Option<String> {
     None
 }
 
-fn get_page_IPA_pronontiation(lines: &Vec<String>) -> Option<String> {
+fn get_page_ipa_pronontiation(lines: &Vec<String>) -> Option<String> {
     let pronotiation_index =
         vector_utils::index_of_first_match(|x: &String| x.contains("===Pronunciation==="), &lines);
-    let mut ret_str = String::new();
     let mut best = String::new();
     for n in 1..10 {
         let line = lines.get(pronotiation_index + n)?;
@@ -128,7 +127,7 @@ pub fn parse_page_block(lines: &Vec<String>) -> Option<WiktionaryPage> {
 
         if !word_option.contains(":") {
             // print!("word is: {}\n", word_option);
-            let ipa = get_page_IPA_pronontiation(lines)?;
+            let ipa = get_page_ipa_pronontiation(lines)?;
             // print!("pronotiation is: \n{}\n", ipa);
             return Some(WiktionaryPage {
                 word: word_option,
