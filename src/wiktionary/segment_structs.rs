@@ -1,16 +1,15 @@
 use crate::trygvejw::utils::vector_utils;
+use crate::wiktionary::segment_structs;
+use std::fs::File;
+use std::io::{BufRead, Seek, SeekFrom, Write};
 use std::ptr::null;
 use std::{fs, io};
-use crate::wiktionary::segment_structs;
-use std::io::{BufRead, Write, Seek, SeekFrom};
-use std::fs::File;
 
 use std::sync::mpsc;
-use std::thread;
-use std::sync::mpsc::Sender;
-use std::sync::mpsc::Receiver;
 use std::sync::mpsc::channel;
-
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use std::thread;
 
 enum SegmentTypes {
     Pronunciation,
@@ -95,23 +94,21 @@ fn get_page_ipa_pronontiation(lines: &Vec<String>) -> Option<String> {
     for n in 1..10 {
         let line = lines.get(pronotiation_index + n)?;
 
-        if (line.contains("US") || line.contains("GA")) && line.contains("{{IPA|en|/"){
+        if (line.contains("US") || line.contains("GA")) && line.contains("{{IPA|en|/") {
             let split = line.splitn(2, "{{IPA|en|/");
             best = split.last()?.splitn(2, "/").next()?.to_string();
-        } if line.contains("{{IPA|en|/") && best.is_empty() {
-            let split = line.splitn(2, "{{IPA|en|/");
-            best = split.last()?.splitn(2, "/").next()?.to_string();
-        } else if line == " " {
-            if best.is_empty() {
-                return None;
-            } else {
-                if best.contains("("){
 
-                }
-
-                return Some(best);
+            if line.contains("US") {
+                break;
             }
+        } else if line == "\n" {
+            break;
+        }
+    }
 
+    if !best.is_empty() {
+        if !best.contains("(") {
+            return Some(best);
         }
     }
 
@@ -123,6 +120,7 @@ pub fn parse_page_block(lines: &Vec<String>) -> Option<WiktionaryPage> {
 
     let is_english = is_page_of_language(&String::from("English"), &lines);
     if is_english {
+        // println!("is english");
         let word_option = get_page_word(&lines)?;
 
         if !word_option.contains(":") {
@@ -140,17 +138,17 @@ pub fn parse_page_block(lines: &Vec<String>) -> Option<WiktionaryPage> {
 }
 
 pub struct FileSegment {
-     start: usize,
-     end: usize,
+    start: usize,
+    end: usize,
 }
+
 fn get_segment_run_list(file_name: &'static str) -> Vec<FileSegment> {
     let cpus = num_cpus::get() as u64;
 
-
     let file: std::fs::File = fs::File::open(file_name).unwrap();
     let file_size = file.metadata().unwrap().len() as u64;
-    let interval =  (file_size/cpus) as u64;
-    let mut start_pos_list: Vec<FileSegment>  = Vec::new();
+    let interval = (file_size / cpus) as u64;
+    let mut start_pos_list: Vec<FileSegment> = Vec::new();
 
     let mut buffer = String::new();
     let mut bytes_read = 1;
@@ -159,9 +157,13 @@ fn get_segment_run_list(file_name: &'static str) -> Vec<FileSegment> {
 
     //println!("finding for {} cores", cpus);
 
-    for n in 0..(cpus-1) {
+    for n in 0..(cpus - 1) {
         //println!("core {}", n);
-        let seek_start = if start_pos_list.is_empty() { 0 } else { start_pos_list.last().unwrap().end +1};
+        let seek_start = if start_pos_list.is_empty() {
+            0
+        } else {
+            start_pos_list.last().unwrap().end + 1
+        };
         let mut possision = seek_start + interval as usize;
         bufered_reader.seek(SeekFrom::Start(possision as u64));
 
@@ -169,7 +171,7 @@ fn get_segment_run_list(file_name: &'static str) -> Vec<FileSegment> {
         while !buffer.contains("</page>") {
             if possision >= file_size as usize {
                 println!("yup not ideal");
-                break
+                break;
             }
             buffer.clear();
             bytes_read = bufered_reader.read_line(&mut buffer).unwrap();
@@ -177,15 +179,18 @@ fn get_segment_run_list(file_name: &'static str) -> Vec<FileSegment> {
             possision = possision + bytes_read;
         }
 
-        start_pos_list.push(FileSegment{start:seek_start, end:possision});
+        start_pos_list.push(FileSegment {
+            start: seek_start,
+            end: possision,
+        });
     }
     //println!("all cores done");
-    start_pos_list.push(FileSegment{start: start_pos_list.last().unwrap().end +1, end: file_size as usize });
+    start_pos_list.push(FileSegment {
+        start: start_pos_list.last().unwrap().end + 1,
+        end: file_size as usize,
+    });
     return start_pos_list;
-
-
 }
-
 
 pub fn read_segment(segment: FileSegment, file_name: &'static str) -> Vec<WiktionaryPage> {
     let file: std::fs::File = fs::File::open(file_name).unwrap();
@@ -197,9 +202,7 @@ pub fn read_segment(segment: FileSegment, file_name: &'static str) -> Vec<Wiktio
     let mut bytes_read = 1;
     let mut possision = segment.start;
     bufered_reader.seek(SeekFrom::Start(possision as u64));
-    while bytes_read > 0{
-
-
+    while bytes_read > 0 {
         buffer.clear();
         bytes_read = bufered_reader.read_line(&mut buffer).unwrap();
         possision += bytes_read;
@@ -207,7 +210,6 @@ pub fn read_segment(segment: FileSegment, file_name: &'static str) -> Vec<Wiktio
             break;
         }
         page_buffer.push(buffer.clone());
-
 
         if buffer.contains("</page>") {
             let page = segment_structs::parse_page_block(&page_buffer);
@@ -220,34 +222,30 @@ pub fn read_segment(segment: FileSegment, file_name: &'static str) -> Vec<Wiktio
     }
 
     return vals;
-
 }
 
-
-pub fn multithred_parse(file_path: &'static str){
+pub fn multithred_parse(file_path: &'static str) {
     let segments = get_segment_run_list(file_path);
 
     let mut recive_list: Vec<WiktionaryPage> = Vec::new();
     let mut rx_list: Vec<Receiver<Vec<WiktionaryPage>>> = Vec::new();
     // let (tx,rx): (Sender<Vec<WiktionaryPage>>, Receiver<Vec<WiktionaryPage>>) = mpsc::chanel();
 
-    for segment in segments{
-        let (tx,rx): (Sender<Vec<WiktionaryPage>>, Receiver<Vec<WiktionaryPage>>) = mpsc::channel();
+    for segment in segments {
+        let (tx, rx): (Sender<Vec<WiktionaryPage>>, Receiver<Vec<WiktionaryPage>>) =
+            mpsc::channel();
         rx_list.push(rx);
         // let tx = tx.clone();
 
-        thread::spawn(move||{
+        thread::spawn(move || {
             let mut res = read_segment(segment, file_path);
-            tx.send( res).unwrap();
-
-
+            tx.send(res).unwrap();
         });
-
     }
 
-    for reci in rx_list  {
-       let mut abc =  reci.recv().unwrap();
-       recive_list.append(&mut abc);
+    for reci in rx_list {
+        let mut abc = reci.recv().unwrap();
+        recive_list.append(&mut abc);
     }
 
     println!("num found: {}", recive_list.len());
@@ -259,8 +257,6 @@ pub fn multithred_parse(file_path: &'static str){
         let save_str = format!("{}@{}\n", page.word, page.ipa_pronontiation);
         log.write(save_str.as_ref());
     }
-
-
 }
 
 pub fn read_xml_title_content(file_path: &'static str) {
@@ -271,9 +267,7 @@ pub fn read_xml_title_content(file_path: &'static str) {
     let mut page_buffer: Vec<String> = Vec::new();
     let mut buffer = String::new();
     let mut bytes_read = 1;
-    while bytes_read > 0{
-
-
+    while bytes_read > 0 {
         // for n in 0..10000 {
         buffer.clear();
         bytes_read = bufered_reader.read_line(&mut buffer).unwrap();
