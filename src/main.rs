@@ -9,10 +9,10 @@ extern crate num_cpus;
 use cmu_translator::get_word_number_pairs;
 use std::io;
 use std::io::Write;
+use std::path::Path;
 
 pub mod cmu_translator;
 
-// strippe tall og strippe (1)
 fn main() {
     let letter_num_path_str: &'static str = "./letter_number_pairs";
 
@@ -37,16 +37,6 @@ fn main() {
             .iter()
             .filter(|nwp| nwp.number == nmr.strip_suffix("\n").unwrap())
             .for_each(|a| println!("{}-{}-{}", a.number, a.word, a.arpabet_pronon.join(" ")));
-
-        //println!("num is {}", nmr);
     }
 
-    //read_xml_title_content(xml_fp);
-    //let a = get_letter_number_pair(lnp_fp);
-
-    //let abc = WordNumberTranslator::new(lnp_fp);
-
-    //match_word_to_number(logg_fp, abc);
-
-    // println!("Hello, world!");
 }
