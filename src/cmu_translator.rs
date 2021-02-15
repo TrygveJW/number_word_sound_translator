@@ -1,12 +1,8 @@
 use std::collections::HashMap;
 use std::io::BufRead;
 use std::{fs, io};
-use unicode_segmentation::UnicodeSegmentation;
 
-struct SoundNumberPair {
-    number: i32,
-    letter: Vec<String>,
-}
+use unicode_segmentation::UnicodeSegmentation;
 
 pub struct WordNumberPair {
     pub number: String,
@@ -53,6 +49,12 @@ impl WordNumberTranslator {
                         found = true;
                         pronon_num.push(k.to_string().parse().unwrap())
                     }
+                    if found {
+                        break;
+                    }
+                }
+                if found {
+                    break;
                 }
             }
         }
@@ -132,9 +134,9 @@ fn load_words(file_name: &'static str) -> Vec<CmuWord> {
     let mut values: Vec<CmuWord> = Vec::new();
     let mut buffer = String::new();
 
-    for n in 0..56 {
+    for _n in 0..56 {
         // need to move down exactly 56
-        bufered_reader.read_line(&mut buffer);
+        let _ = bufered_reader.read_line(&mut buffer);
     }
     buffer.clear();
     let mut bytes_read = bufered_reader.read_line(&mut buffer).unwrap();
@@ -142,7 +144,7 @@ fn load_words(file_name: &'static str) -> Vec<CmuWord> {
     buffer = strip_newline(buffer);
 
     while bytes_read > 0 {
-        let (word, mut pronon) = buffer.split_once("  ").unwrap();
+        let (word, pronon) = buffer.split_once("  ").unwrap();
 
         let pronon_vec: Vec<String> = pronon
             .split(" ")
