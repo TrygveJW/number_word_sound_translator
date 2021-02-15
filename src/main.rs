@@ -14,28 +14,14 @@ pub mod cmu_translator;
 
 // strippe tall og strippe (1)
 fn main() {
-    //let xml_fp : &'static str = "/home/trygve/Development/projects/number_word_sound_translator/data/enwiktionary-20200901-pages-articles.xml";
-    //let logg_fp: &'static str =
-    "/home/trygve/Development/projects/number_word_sound_translator/logg.txt";
-    let lnp_fp: &'static str =
-        "/home/trygve/Development/projects/number_word_sound_translator/letter_number_pairs";
+    let letter_num_path_str: &'static str = "./letter_number_pairs";
 
-    let cmu_fp: &'static str =
-        "/home/trygve/Development/projects/number_word_sound_translator/data/cmudict-0.7b-utf";
+    let letter_num_fp = Path::new(letter_num_path_str);
 
-    //multithred_parse(xml_fp);
+    let cmu_path_string: &'static str = "./data/cmudict-0.7b-utf";
+    let cmu_fp = Path::new(cmu_path_string);
 
-    let translated_words = get_word_number_pairs(lnp_fp, cmu_fp);
-    //translated_words.iter().for_each(|l| println!("{}-{}", l.word, l.number));
-
-    // for n in 0..1000 {
-    //     if !translated_words
-    //         .iter()
-    //         .any(|nwp| nwp.number == n.to_string())
-    //     {
-    //         println!("NO FOR {}", n);
-    //     }
-    // }
+    let translated_words = get_word_number_pairs(letter_num_fp, cmu_fp);
 
     loop {
         print!("input number: ");
