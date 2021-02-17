@@ -36,7 +36,7 @@ fn main() {
         translated_words
             .iter()
             .filter(|nwp| nwp.number == nmr.strip_suffix("\n").unwrap())
-            .for_each(|a| println!("{}-{}-{}", a.number, a.word, a.arpabet_pronon.join(" ")));
+            .for_each(|a| println!("{:3} - {:10} - {}", a.number, a.word, a.arpabet_pronon.join(" ")));
     }
 
 }
