@@ -37,7 +37,8 @@ impl WordNumberTranslator {
                 for t_value in v {
                     if *t_value == *pronon {
                         found = true;
-                        pronon_num.push(k.to_string().parse().unwrap())
+                        //println!("{}",k.to_string());
+                        pronon_num.push_str(&*k.to_string())
                     }
                     if found {
                         break;
@@ -69,9 +70,15 @@ fn get_letter_number_pair(file_path: &Path) -> HashMap<i32, Vec<String>> {
     let mut bytes_read = bufered_reader.read_line(&mut buffer).unwrap();
     while bytes_read > 0 {
         if buffer.len() > 0 {
+            let mut  number_buf :Vec<&str> = Vec::new();
             let mut chars = buffer.graphemes(true);
-            let num: i32 = chars.next().unwrap().parse::<i32>().unwrap();
-            chars.next();
+            let mut char = chars.next().unwrap();
+            while char != "=" && char !="" {
+               number_buf.push(char.clone());
+                char = chars.next().unwrap();
+            }
+
+            let num: i32 = number_buf.join("").parse::<i32>().unwrap();
 
             let mut tmp_val: Vec<String> = Vec::new();
 
