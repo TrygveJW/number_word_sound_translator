@@ -1,6 +1,6 @@
 # number_word_sound_translator
 
-Have you ever needed to do a reverse search form phonetically mapped numbers to valid English words? Then this is the program for you.  
+Have you ever needed to do a reverse search from phonetically mapped numbers to valid English words? Then this is the program for you.  
 
 The number-> phonetic sound mapping is done in the letter_number_pair file. The mapping is using the ARPABET mapping from IPA to ARPABET can be found here https://en.wikipedia.org/wiki/ARPABET 
 
