@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 num_cpus = "1.0"
 unicode-segmentation = "1.7.1"
+encoding_rs = "0.8.31"
+encoding_rs_io = "0.1.7"
