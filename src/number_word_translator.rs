@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::io::{BufRead, Write};
 use std::path::Path;
 use std::{fs, io};
@@ -29,6 +29,40 @@ impl WordNumberTranslator {
             number_sound_map: map,
             translated_words: Vec::new(),
         };
+    }
+
+    pub fn get_ipa_symbol_frequencies(&self){
+        let all_symbols: Vec<_> = self.translated_words.iter().flat_map(|wnp| wnp.ipa_symbols.iter()).collect();
+        let used_syms : HashSet<_> = self.number_sound_map.iter().flat_map(|(_,b)| b.iter()).collect();
+
+        let mut tracker: HashMap<&String, i32> = HashMap::new();
+
+        for sym in all_symbols{
+            // if used_syms.contains(sym){
+                if let Some(v) = tracker.get_mut(sym){
+                    *v += 1;
+                }else {
+                    tracker.insert(sym,1);
+                }
+            // }
+        }
+        let mut tracked_list: Vec<(&String, i32)> = tracker.into_iter().collect();
+        tracked_list.sort_by_key(|v| v.1);
+        tracked_list.reverse();
+        for (k,v) in tracked_list{
+            let mut target_num = -1;
+
+            let num = for (num, syms) in &self.number_sound_map{
+                if syms.contains(k){
+                    target_num = num.clone();
+                    break;
+                }
+            };
+
+            println!("{:<8?} - {:<2?} - {:?}", v,target_num, k)
+        }
+
+
     }
 
     fn translate_word(&self, word: WordIpaPair) -> WordNumberPair {

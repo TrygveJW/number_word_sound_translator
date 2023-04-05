@@ -34,7 +34,7 @@ fn main() {
     let nst_fp = Path::new(letter_num_path_str);
     let nst_res = parse_nst(nst_fp);
     nwt.add_new_words(nst_res);
-
+    nwt.get_ipa_symbol_frequencies();
     nwt.start_loop();
 
     // let letter_num_path_str: &'static str = "./letter_number_pairs";
